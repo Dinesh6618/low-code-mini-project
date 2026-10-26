@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BoutiqueFlow — Luxury boutique</title>
+  <meta name="description" content="BoutiqueFlow: a luxury boutique ordering system prototype with storefront, checkout, order tracking and an admin dashboard.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&amp;family=Jost:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/shop.css">
+  <link rel="stylesheet" href="assets/home.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%23672C3A'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='18' text-anchor='middle' fill='%23F8F5F0'%3EB%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="skip-link" href="#main" data-action="skip">Skip to content</a>
+  <div id="shell"></div>
+  <div class="overlay" id="overlay" data-action="drawer-close"></div>
+  <aside class="drawer" id="bag-drawer" aria-label="Shopping bag" aria-hidden="true"></aside>
+  <div id="modal-root"></div>
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+  <noscript><p style="padding:48px;text-align:center">BoutiqueFlow needs JavaScript to run.</p></noscript>
+
+  <script src="js/seed.js"></script>
+  <script src="assets/products/manifest.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+﻿{
+  "name": "boutiqueflow-e2e",
+  "private": true,
+  "description": "Browser tests for the BoutiqueFlow prototype (drives an installed Edge/Chrome).",
+  "scripts": { "journey": "node journey.js", "responsive": "node responsive.js" },
+  "dependencies": { "puppeteer-core": "^23.0.0" }
+}

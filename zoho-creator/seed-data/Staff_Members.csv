@@ -1,0 +1,4 @@
+﻿Staff_Name,Email,Role,Can_Manage_Products,Can_Fulfil_Orders,Active
+Replace with your admin,admin@your-domain.example,Admin,true,true,true
+Replace with product staff,products@your-domain.example,Staff,true,false,true
+Replace with fulfilment staff,fulfilment@your-domain.example,Staff,false,true,true

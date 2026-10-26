@@ -1,0 +1,2 @@
+﻿Low_Stock_Threshold,Delivery_Fee,Free_Delivery_Over,ETA_Min_Days,ETA_Max_Days,Unpaid_Order_Timeout_Minutes
+5,150,3000,3,6,30

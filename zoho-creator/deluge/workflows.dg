@@ -1,0 +1,461 @@
+/* ============================================================================
+   BoutiqueFlow — form workflows, custom actions and schedules
+   ----------------------------------------------------------------------------
+   STATUS: written to Deluge syntax, NOT yet executed in a Zoho Creator account.
+   Install each section as the workflow named in its banner (Creator > Workflow).
+   Functions it calls live in functions.dg (namespace "bf"). Field link names are
+   defined in ../02-data-model.md.
+
+   PRINCIPLES
+   * The browser/widget is never trusted. Prices, discounts, delivery fee, totals,
+     stock and ownership are all recomputed here from the database.
+   * "cancel submit" stops a save and shows the alert text to the user.
+   * Order fields are read-only to every profile (see ../04-roles-and-permissions.md);
+     only these scripts change status, payment and stock.
+   ========================================================================== */
+
+
+/* ===== Workflow: Orders > On Add > On Validate ============================
+   Required-field checks, stock availability, price + total calculation. */
+
+cfg = Store_Settings[ID != 0];
+if(cfg.count() == 0)
+{
+	alert "The shop is not configured yet. Please contact the boutique.";
+	cancel submit;
+}
+// contact + address checks beyond Creator's built-in "required"
+if(!input.Phone.matches("^[6-9][0-9]{9}$"))
+{
+	alert "Enter a valid 10-digit mobile number.";
+	cancel submit;
+}
+if(!input.Ship_PIN.matches("^[0-9]{6}$"))
+{
+	alert "Enter a valid 6-digit PIN code.";
+	cancel submit;
+}
+// a signed-in customer can only order as themselves
+me = Customers[Email == zoho.loginuserid];
+if(me.count() > 0)
+{
+	input.Customer = me.ID;
+	input.Email = me.Email;
+}
+// price every line from the database
+subtotal = 0.0;
+lineCount = 0;
+seen = List();
+for each  row in input.Order_Items
+{
+	v = Product_Variants[ID == row.Product_Variant.toLong()];
+	if(v.count() == 0 || v.Active == false || v.Product.Active == false)
+	{
+		alert "One of the items in your bag is no longer available.";
+		cancel submit;
+	}
+	if(row.Quantity == null || row.Quantity < 1)
+	{
+		alert "Quantity must be at least 1 for " + v.Product.Product_Name + ".";
+		cancel submit;
+	}
+	if(seen.contains(v.ID))
+	{
+		alert "The same item appears twice in your bag. Please combine the quantities.";
+		cancel submit;
+	}
+	seen.add(v.ID);
+	if(row.Quantity > v.Stock_Qty)
+	{
+		alert "Only " + v.Stock_Qty + " left of " + v.Product.Product_Name + " (" + v.Color.Colour_Name + " / " + v.Size + ").";
+		cancel submit;
+	}
+	p = v.Product;
+	unit = p.Price;
+	if(p.Sale_Price != null && p.Sale_Price > 0 && p.Sale_Price < p.Price)
+	{
+		unit = p.Sale_Price;
+	}
+	subtotal = subtotal + unit * row.Quantity;
+	lineCount = lineCount + 1;
+}
+if(lineCount == 0)
+{
+	alert "Your bag is empty.";
+	cancel submit;
+}
+// promo code
+discount = 0.0;
+code = ifNull(input.Promo_Code,"").trim().toUpperCase();
+if(code != "")
+{
+	promo = Promo_Codes[Code == code && Active == true];
+	if(promo.count() == 0)
+	{
+		alert "That promo code is not valid.";
+		cancel submit;
+	}
+	if(subtotal < ifNull(promo.Min_Order,0))
+	{
+		alert "This code needs a minimum order of Rs " + promo.Min_Order + ".";
+		cancel submit;
+	}
+	if(promo.Discount_Type == "Percent")
+	{
+		discount = (subtotal * promo.Discount_Value / 100).round(0);
+	}
+	else
+	{
+		discount = promo.Discount_Value;
+	}
+	if(ifNull(promo.Max_Discount,0) > 0 && discount > promo.Max_Discount)
+	{
+		discount = promo.Max_Discount;
+	}
+	if(discount > subtotal)
+	{
+		discount = subtotal;
+	}
+	input.Promo_Code = code;
+}
+delivery = cfg.Delivery_Fee;
+if(subtotal - discount >= cfg.Free_Delivery_Over)
+{
+	delivery = 0;
+}
+input.Subtotal = subtotal;
+input.Discount = discount;
+input.Delivery_Fee = delivery;
+input.Total = subtotal - discount + delivery;
+input.Order_Status = "Pending Payment";
+input.Payment_Status = "Pending";
+input.Stock_Deducted = false;
+input.Stock_Restored = false;
+input.Placed_On = zoho.currenttime;
+
+
+/* ===== Workflow: Orders > On Add > On Success ===============================
+   Freeze the purchase (name, variant, SKU, unit price), create the payment record,
+   and confirm Cash on Delivery orders immediately. Online orders wait for payment. */
+
+ord = Orders[ID == input.ID];
+for each  li in Order_Items[Order == ord.ID]
+{
+	v = Product_Variants[ID == li.Product_Variant.toLong()];
+	p = v.Product;
+	unit = p.Price;
+	if(p.Sale_Price != null && p.Sale_Price > 0 && p.Sale_Price < p.Price)
+	{
+		unit = p.Sale_Price;
+	}
+	li.Product_Name_Snapshot = p.Product_Name;
+	li.Variant_Label_Snapshot = v.Color.Colour_Name + " / " + v.Size;
+	li.SKU_Snapshot = v.SKU;
+	li.Category_Snapshot = p.Category.Category_Name;
+	li.Unit_Price = unit;
+}
+insert into Payments
+[
+	Added_User = zoho.loginuser
+	Order = ord.ID
+	Order_Number = ord.Order_Number
+	Payment_Method = ord.Payment_Method
+	Amount = ord.Total
+	Payment_Status = "Pending"
+]
+if(ord.Payment_Method == "Cash on Delivery")
+{
+	thisapp.bf.confirmOrder(ord.ID);
+}
+
+
+/* ===== Workflow: Payments > On Edit > On Success ============================
+   Fires when a payment becomes "Paid" (a simulated "Pay now" button, a gateway
+   webhook handled by a Custom API, or staff recording a payment). Safe to run
+   repeatedly: confirmOrder() is idempotent. */
+
+pay = Payments[ID == input.ID];
+if(pay.Payment_Status == "Paid")
+{
+	ord = Orders[ID == pay.Order.toLong()];
+	if(ord.Order_Status != "Cancelled")
+	{
+		ord.Payment_Status = "Paid";
+		if(pay.Paid_On == null)
+		{
+			pay.Paid_On = zoho.currenttime;
+		}
+		if(ord.Stock_Deducted == false)
+		{
+			thisapp.bf.confirmOrder(ord.ID);
+		}
+	}
+}
+else if(pay.Payment_Status == "Failed")
+{
+	ord = Orders[ID == pay.Order.toLong()];
+	if(ord.Order_Status == "Pending Payment")
+	{
+		ord.Payment_Status = "Failed";
+	}
+}
+
+
+/* ===== Workflow: Cancellation_Requests > On Add > On Validate ===============
+   Ownership + eligibility. Customers never get edit rights on Orders; they submit
+   this form instead and the system decides. */
+
+ord = Orders[ID == input.Order.toLong()];
+if(ord.count() == 0)
+{
+	alert "Order not found.";
+	cancel submit;
+}
+isStaff = thisapp.bf.hasPermission(zoho.loginuserid,"fulfilment");
+if(isStaff == false && ord.Email != zoho.loginuserid)
+{
+	alert "You can only cancel your own orders.";
+	cancel submit;
+}
+if(!{"Pending Payment","Confirmed","Packed"}.contains(ord.Order_Status))
+{
+	alert "This order can no longer be cancelled because it is " + ord.Order_Status + ".";
+	cancel submit;
+}
+input.Request_Status = "Pending";
+
+
+/* ===== Workflow: Cancellation_Requests > On Add > On Success ================ */
+
+req = Cancellation_Requests[ID == input.ID];
+result = thisapp.bf.cancelOrder(req.Order.toLong(),req.Reason,zoho.loginuser);
+if(result == "OK")
+{
+	req.Request_Status = "Approved";
+	req.Decision_Note = "Cancelled automatically; stock restored.";
+}
+else
+{
+	req.Request_Status = "Declined";
+	req.Decision_Note = result;
+}
+
+
+/* ===== Workflow: Ship_Order > On Add > On Validate ==========================
+   Small form (Order lookup, Courier, Tracking_Number) used instead of editing the
+   order, so a tracking number is always captured. */
+
+if(thisapp.bf.hasPermission(zoho.loginuserid,"fulfilment") == false)
+{
+	alert "You do not have permission to update fulfilment.";
+	cancel submit;
+}
+if(input.Tracking_Number.trim().length() < 4)
+{
+	alert "Enter the courier tracking number.";
+	cancel submit;
+}
+
+/* ===== Workflow: Ship_Order > On Add > On Success ========================== */
+
+res = thisapp.bf.advanceStatus(input.Order.toLong(),"Shipped",input.Courier,input.Tracking_Number,zoho.loginuser);
+if(res != "OK")
+{
+	// the record exists already; surface the problem to staff
+	thisapp.bf.notify("Staff","","Fulfilment error","Could not ship order",res,"","In-app");
+}
+
+
+/* ===== Custom action (Orders_Admin report, "Mark as packed" / "Mark as delivered")
+   Report > Actions > Custom action. Select the records, run the script. The
+   collection of selected IDs is passed as "orderIds". Create one action per status. */
+
+// --- Mark as packed ---
+if(thisapp.bf.hasPermission(zoho.loginuserid,"fulfilment") == false)
+{
+	return "You do not have permission to update fulfilment.";
+}
+messages = List();
+for each  id in orderIds
+{
+	messages.add(thisapp.bf.advanceStatus(id.toLong(),"Packed","","",zoho.loginuser));
+}
+return messages.toString();
+// --- Mark as delivered: identical, but pass "Delivered" instead of "Packed" ---
+
+// --- Cancel order (staff): ---
+if(thisapp.bf.hasPermission(zoho.loginuserid,"fulfilment") == false)
+{
+	return "You do not have permission to cancel orders.";
+}
+for each  id in orderIds
+{
+	thisapp.bf.cancelOrder(id.toLong(),"Cancelled by staff",zoho.loginuser);
+}
+return "Done";
+
+
+/* ===== Workflow: Stock_Adjustments > On Add > On Validate ===================
+   Staff change stock ONLY through this form so every change lands in the ledger. */
+
+if(thisapp.bf.hasPermission(zoho.loginuserid,"products") == false)
+{
+	alert "You do not have permission to change stock.";
+	cancel submit;
+}
+if(input.Quantity == null || input.Quantity < 0)
+{
+	alert "Enter a quantity of zero or more.";
+	cancel submit;
+}
+
+/* ===== Workflow: Stock_Adjustments > On Add > On Success ================== */
+
+adj = Stock_Adjustments[ID == input.ID];
+v = Product_Variants[ID == adj.Product_Variant.toLong()];
+if(adj.Action == "Add stock")
+{
+	delta = adj.Quantity;
+}
+else if(adj.Action == "Remove stock")
+{
+	delta = -adj.Quantity;
+}
+else
+{
+	delta = adj.Quantity - v.Stock_Qty;
+}
+if(delta != 0)
+{
+	res = thisapp.bf.adjustStock(v.ID,delta.toLong(),adj.Reason_Type,ifNull(adj.Note,""),"",zoho.loginuser);
+	adj.Result = res;
+}
+else
+{
+	adj.Result = "No change";
+}
+
+
+/* ===== Workflow: Product_Variants > On Add / On Edit > On Validate ==========
+   Unique SKU and unique Product + Colour + Size; stock never negative. Direct edits
+   to Stock_Qty are blocked for everyone except the import profile by field-level
+   permission; this is the belt-and-braces check. */
+
+if(input.Stock_Qty < 0)
+{
+	alert "Stock cannot be negative.";
+	cancel submit;
+}
+dup = Product_Variants[SKU == input.SKU && ID != input.ID];
+if(dup.count() > 0)
+{
+	alert "That SKU already exists.";
+	cancel submit;
+}
+combo = Product_Variants[Product == input.Product && Color == input.Color && Size == input.Size && ID != input.ID];
+if(combo.count() > 0)
+{
+	alert "This product already has a variant with that colour and size.";
+	cancel submit;
+}
+
+
+/* ===== Workflow: Products > On Add / On Edit > On Validate ================== */
+
+if(input.Price == null || input.Price <= 0)
+{
+	alert "Enter a price above zero.";
+	cancel submit;
+}
+if(input.Sale_Price != null && input.Sale_Price > 0 && input.Sale_Price >= input.Price)
+{
+	alert "The sale price must be below the regular price.";
+	cancel submit;
+}
+if(thisapp.bf.hasPermission(zoho.loginuserid,"products") == false)
+{
+	alert "You do not have permission to manage products.";
+	cancel submit;
+}
+
+
+/* ===== Workflow: Cart_Items > On Add / On Edit > On Validate ================
+   Quantity may not exceed available stock, in this row or combined with the same
+   item already in the cart. */
+
+v = Product_Variants[ID == input.Product_Variant.toLong()];
+if(v.count() == 0 || v.Active == false || v.Product.Active == false)
+{
+	alert "This item is no longer available.";
+	cancel submit;
+}
+if(v.Stock_Qty == 0)
+{
+	alert "Sorry, this size and colour is sold out.";
+	cancel submit;
+}
+existing = Cart_Items[Cart == input.Cart && Product_Variant == input.Product_Variant && ID != input.ID];
+already = 0;
+for each  e in existing
+{
+	already = already + e.Quantity;
+}
+if(input.Quantity + already > v.Stock_Qty)
+{
+	alert "Only " + v.Stock_Qty + " available.";
+	cancel submit;
+}
+
+
+/* ===== Workflow: Staff_Members > On Add / On Edit > On Validate =============
+   Only admins manage staff, and the shop can never be left without an active admin. */
+
+if(thisapp.bf.hasPermission(zoho.loginuserid,"admin") == false)
+{
+	alert "Only an administrator can manage staff.";
+	cancel submit;
+}
+others = Staff_Members[Role == "Admin" && Active == true && ID != input.ID];
+if(others.count() == 0 && (input.Role != "Admin" || input.Active == false))
+{
+	alert "At least one active administrator is required.";
+	cancel submit;
+}
+/* Bootstrap note: the very first Staff_Members row must be imported (CSV) or added by the
+   Creator application owner, because no admin exists yet to pass the first check. */
+
+
+/* ===== Schedule: expire unpaid online orders (every 10 minutes) =============
+   Releases abandoned "Pending Payment" orders. No stock was deducted for them, so
+   this only closes the order. */
+
+cfg = Store_Settings[ID != 0];
+cutoff = zoho.currenttime.subMinutes(cfg.Unpaid_Order_Timeout_Minutes.toLong());
+for each  o in Orders[Order_Status == "Pending Payment" && Placed_On < cutoff]
+{
+	thisapp.bf.cancelOrder(o.ID,"Payment not completed in time","System");
+}
+
+
+/* ===== Schedule: daily low-stock digest (every day, 08:00) ================== */
+
+cfg = Store_Settings[ID != 0];
+low = Product_Variants[Active == true && Stock_Qty <= cfg.Low_Stock_Threshold];
+if(low.count() > 0)
+{
+	body = "Variants at or below " + cfg.Low_Stock_Threshold + " units:<br>";
+	for each  v in low
+	{
+		body = body + v.SKU + " - " + v.Product.Product_Name + " (" + v.Color.Colour_Name + " / " + v.Size + "): " + v.Stock_Qty + "<br>";
+	}
+	for each  s in Staff_Members[Active == true && (Role == "Admin" || Can_Manage_Products == true)]
+	{
+		sendmail
+		[
+			from :zoho.adminuserid
+			to :s.Email
+			subject :"BoutiqueFlow low-stock digest (" + low.count() + " variants)"
+			message :body
+		]
+	}
+}

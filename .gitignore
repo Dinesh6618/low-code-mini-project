@@ -1,0 +1,12 @@
+# dependencies and build output
+node_modules/
+prototype/tests/e2e/node_modules/
+prototype/tests/e2e/package-lock.json
+
+# local test output and editor/OS files
+shots/
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

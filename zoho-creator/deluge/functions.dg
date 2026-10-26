@@ -1,0 +1,380 @@
+/* ============================================================================
+   BoutiqueFlow — reusable Deluge functions
+   ----------------------------------------------------------------------------
+   STATUS: written to Deluge syntax, NOT yet executed in a Zoho Creator account.
+   Test every function in the Development environment before relying on it.
+
+   HOW TO INSTALL
+   Creator > Settings > Functions > + New Function. For each block below create a
+   function with namespace "bf", the name, the return type and the arguments shown
+   in its signature line, then paste the BODY (everything between the braces).
+   Call them from workflows as:  thisapp.bf.<functionName>( ... )
+
+   FIELD LINK NAMES
+   Creator derives link names from labels ("Order Status" -> Order_Status). If you
+   label a field differently, change the name here. See ../02-data-model.md.
+
+   IDEMPOTENCY
+   Stock-changing functions are guarded twice: by a flag on the order
+   (Stock_Deducted / Stock_Restored) and by looking for an existing row in the
+   Inventory_Movements ledger. Running a workflow twice therefore cannot deduct or
+   restore stock twice. (Creator cannot lock a record, so two executions that start
+   in the same instant could in theory both pass the flag check; the ledger check
+   is the second line of defence.)
+   ========================================================================== */
+
+
+/* ---------------------------------------------------------------------------
+   bool bf.hasPermission(string email, string permission)
+   Server-side role check. permission: "products" | "fulfilment" | "admin"
+   Staff_Members is the source of truth for fine-grained rights; Creator profiles
+   (see ../04-roles-and-permissions.md) gate which forms/reports a user can open.
+   ------------------------------------------------------------------------- */
+bool bf.hasPermission(string email, string permission)
+{
+	s = Staff_Members[Email == email && Active == true];
+	if(s.count() == 0)
+	{
+		return false;
+	}
+	if(s.Role == "Admin")
+	{
+		return true;
+	}
+	if(permission == "products")
+	{
+		return s.Can_Manage_Products;
+	}
+	if(permission == "fulfilment")
+	{
+		return s.Can_Fulfil_Orders;
+	}
+	return false;
+}
+
+
+/* ---------------------------------------------------------------------------
+   void bf.notify(string audience, string toEmail, string type, string title,
+                  string body, string orderNo, string channel)
+   Writes an in-app notification row. audience: "Staff" | "Customer".
+   For audience "Staff" pass toEmail = "". Email delivery is a separate step
+   (sendmail) done by the callers that need it.
+   ------------------------------------------------------------------------- */
+void bf.notify(string audience, string toEmail, string type, string title, string body, string orderNo, string channel)
+{
+	insert into Notifications
+	[
+		Added_User = zoho.loginuser
+		Audience = audience
+		Customer_Email = toEmail
+		Notification_Type = type
+		Title = title
+		Message = body
+		Order_Number = orderNo
+		Channel = channel
+		Is_Read = false
+	];
+}
+
+
+/* ---------------------------------------------------------------------------
+   string bf.adjustStock(int variantId, int delta, string moveType, string reason,
+                         string orderNo, string byUser)
+   The ONLY place Product_Variants.Stock_Qty is changed. Writes the ledger row first,
+   then updates the stock, then checks the low-stock threshold.
+   Returns "OK" or a message; never lets stock go below zero.
+   moveType: Opening Stock | Sale | Cancellation Restock | Restock | Adjustment |
+             Damaged / Write-off
+   ------------------------------------------------------------------------- */
+string bf.adjustStock(int variantId, int delta, string moveType, string reason, string orderNo, string byUser)
+{
+	v = Product_Variants[ID == variantId];
+	if(v.count() == 0)
+	{
+		return "Variant not found.";
+	}
+	newQty = v.Stock_Qty + delta;
+	if(newQty < 0)
+	{
+		return "Stock cannot go below zero (" + v.SKU + ").";
+	}
+	insert into Inventory_Movements
+	[
+		Added_User = zoho.loginuser
+		Product_Variant = variantId
+		Movement_Type = moveType
+		Quantity_Change = delta
+		Balance_After = newQty
+		Reason = reason
+		Order_Number = orderNo
+		Performed_By = byUser
+	];
+	v.Stock_Qty = newQty;
+	thisapp.bf.checkLowStock(variantId);
+	return "OK";
+}
+
+
+/* ---------------------------------------------------------------------------
+   void bf.checkLowStock(int variantId)
+   Raises ONE alert each time a variant dips to or below the threshold, and re-arms
+   once it recovers above it (flag: Low_Stock_Alerted).
+   ------------------------------------------------------------------------- */
+void bf.checkLowStock(int variantId)
+{
+	v = Product_Variants[ID == variantId];
+	cfg = Store_Settings[ID != 0];
+	if(v.count() == 0 || cfg.count() == 0)
+	{
+		return;
+	}
+	label = v.Product.Product_Name + " (" + v.Color.Colour_Name + " / " + v.Size + ")";
+	if(v.Active == true && v.Stock_Qty <= cfg.Low_Stock_Threshold)
+	{
+		if(v.Low_Stock_Alerted == false)
+		{
+			v.Low_Stock_Alerted = true;
+			if(v.Stock_Qty == 0)
+			{
+				heading = "Sold out: " + label;
+			}
+			else
+			{
+				heading = "Low stock: " + label;
+			}
+			msg = v.SKU + " has " + v.Stock_Qty + " left. Threshold is " + cfg.Low_Stock_Threshold + ".";
+			thisapp.bf.notify("Staff","","Low stock",heading,msg,"","In-app");
+			for each  s in Staff_Members[Active == true && (Role == "Admin" || Can_Manage_Products == true)]
+			{
+				sendmail
+				[
+					from :zoho.adminuserid
+					to :s.Email
+					subject :heading
+					message :msg
+				]
+			}
+		}
+	}
+	else if(v.Stock_Qty > cfg.Low_Stock_Threshold)
+	{
+		v.Low_Stock_Alerted = false;
+	}
+}
+
+
+/* ---------------------------------------------------------------------------
+   void bf.confirmOrder(int orderId)
+   Idempotent. Re-checks stock, deducts it once, moves the order to Confirmed and
+   notifies. Call it:
+     - from Orders > On Success for Cash on Delivery orders, and
+     - from Payments workflows when an online payment becomes "Paid".
+   ------------------------------------------------------------------------- */
+void bf.confirmOrder(int orderId)
+{
+	ord = Orders[ID == orderId];
+	if(ord.count() == 0 || ord.Stock_Deducted == true || ord.Order_Status == "Cancelled")
+	{
+		return;
+	}
+	cfg = Store_Settings[ID != 0];
+	lines = Order_Items[Order == orderId];
+	// 1) all lines must still be available
+	for each  li in lines
+	{
+		v = Product_Variants[ID == li.Product_Variant.toLong()];
+		if(v.count() == 0 || v.Active == false || v.Stock_Qty < li.Quantity)
+		{
+			thisapp.bf.cancelOrder(orderId,"Items sold out before the order could be confirmed","System");
+			return;
+		}
+	}
+	// 2) claim the order first so a retried workflow stops at the guard above
+	ord.Stock_Deducted = true;
+	// 3) deduct each line once (ledger check = second guard)
+	for each  li in lines
+	{
+		vid = li.Product_Variant.toLong();
+		done = Inventory_Movements[Order_Number == ord.Order_Number && Product_Variant == vid && Movement_Type == "Sale"];
+		if(done.count() == 0)
+		{
+			thisapp.bf.adjustStock(vid,-li.Quantity,"Sale","Order confirmed",ord.Order_Number,"System");
+		}
+	}
+	ord.Order_Status = "Confirmed";
+	ord.Last_Notified_Status = "Confirmed";
+	ord.ETA_From = zoho.currentdate.addDay(cfg.ETA_Min_Days.toLong());
+	ord.ETA_To = zoho.currentdate.addDay(cfg.ETA_Max_Days.toLong());
+	thisapp.bf.notify("Customer",ord.Email,"Order confirmed","Order " + ord.Order_Number + " confirmed","Thank you, " + ord.Customer_Name + ". We will let you know when it ships.",ord.Order_Number,"Email");
+	thisapp.bf.notify("Staff","","New order","New order " + ord.Order_Number,ord.Customer_Name + " - Rs " + ord.Total + " - " + ord.Payment_Method,ord.Order_Number,"In-app");
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :ord.Email
+		subject :"Your BoutiqueFlow order " + ord.Order_Number + " is confirmed"
+		message :"Hello " + ord.Customer_Name + ",<br>Thank you for your order. Total: Rs " + ord.Total + ".<br>Estimated delivery: " + ord.ETA_From.toString("dd MMM") + " - " + ord.ETA_To.toString("dd MMM") + "."
+	]
+}
+
+
+/* ---------------------------------------------------------------------------
+   string bf.cancelOrder(int orderId, string reason, string byUser)
+   Cancels an eligible order (Pending Payment, Confirmed or Packed) and restores
+   stock exactly once. Returns "OK" or the reason it was refused. Callers are
+   responsible for checking WHO may cancel (see cancellation workflow).
+   ------------------------------------------------------------------------- */
+string bf.cancelOrder(int orderId, string reason, string byUser)
+{
+	ord = Orders[ID == orderId];
+	if(ord.count() == 0)
+	{
+		return "Order not found.";
+	}
+	if(ord.Order_Status == "Cancelled")
+	{
+		return "This order is already cancelled.";
+	}
+	if(!{"Pending Payment","Confirmed","Packed"}.contains(ord.Order_Status))
+	{
+		return "This order can no longer be cancelled because it is " + ord.Order_Status + ".";
+	}
+	if(ord.Stock_Deducted == true && ord.Stock_Restored == false)
+	{
+		ord.Stock_Restored = true;
+		for each  li in Order_Items[Order == orderId]
+		{
+			vid = li.Product_Variant.toLong();
+			done = Inventory_Movements[Order_Number == ord.Order_Number && Product_Variant == vid && Movement_Type == "Cancellation Restock"];
+			if(done.count() == 0)
+			{
+				thisapp.bf.adjustStock(vid,li.Quantity,"Cancellation Restock","Order cancelled",ord.Order_Number,byUser);
+			}
+		}
+	}
+	if(ord.Payment_Status == "Paid")
+	{
+		ord.Payment_Status = "Refund Pending";
+	}
+	else
+	{
+		ord.Payment_Status = "Cancelled";
+	}
+	pay = Payments[Order == orderId];
+	if(pay.count() > 0)
+	{
+		pay.Payment_Status = ord.Payment_Status;
+	}
+	ord.Order_Status = "Cancelled";
+	ord.Cancel_Reason = reason;
+	ord.Last_Notified_Status = "Cancelled";
+	thisapp.bf.notify("Customer",ord.Email,"Order cancelled","Order " + ord.Order_Number + " cancelled","Reason: " + reason,ord.Order_Number,"Email");
+	thisapp.bf.notify("Staff","","Order cancelled","Order " + ord.Order_Number + " cancelled",reason + " (by " + byUser + ")",ord.Order_Number,"In-app");
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :ord.Email
+		subject :"Your BoutiqueFlow order " + ord.Order_Number + " was cancelled"
+		message :"Your order has been cancelled. " + if(ord.Payment_Status == "Refund Pending","Your refund will be processed to the original payment method.","No payment was taken.")
+	]
+	return "OK";
+}
+
+
+/* ---------------------------------------------------------------------------
+   string bf.advanceStatus(int orderId, string newStatus, string courier,
+                           string trackingNo, string byUser)
+   The only way an order moves forward: Confirmed -> Packed -> Shipped -> Delivered.
+   Skipping a step, or moving a cancelled order, is refused. Callers must already
+   have checked bf.hasPermission(<user>, "fulfilment").
+   ------------------------------------------------------------------------- */
+string bf.advanceStatus(int orderId, string newStatus, string courier, string trackingNo, string byUser)
+{
+	ord = Orders[ID == orderId];
+	if(ord.count() == 0)
+	{
+		return "Order not found.";
+	}
+	flow = {"Confirmed","Packed","Shipped","Delivered"};
+	cur = flow.indexOf(ord.Order_Status);
+	nxt = flow.indexOf(newStatus);
+	if(cur < 0 || nxt != cur + 1)
+	{
+		return "An order in '" + ord.Order_Status + "' cannot move to '" + newStatus + "'.";
+	}
+	if(newStatus == "Shipped" && trackingNo.trim() == "")
+	{
+		return "Enter the courier tracking number.";
+	}
+	ord.Order_Status = newStatus;
+	if(newStatus == "Shipped")
+	{
+		ord.Courier = courier;
+		ord.Tracking_Number = trackingNo.trim();
+	}
+	if(newStatus == "Delivered" && ord.Payment_Method == "Cash on Delivery" && ord.Payment_Status != "Paid")
+	{
+		ord.Payment_Status = "Paid";
+		pay = Payments[Order == orderId];
+		if(pay.count() > 0)
+		{
+			pay.Payment_Status = "Paid";
+			pay.Gateway_Reference = "COD cash collected";
+			pay.Paid_On = zoho.currenttime;
+		}
+	}
+	if(ord.Last_Notified_Status != newStatus)
+	{
+		ord.Last_Notified_Status = newStatus;
+		if(newStatus == "Shipped")
+		{
+			msg = "Your order is on its way with " + courier + " (tracking " + trackingNo.trim() + ").";
+		}
+		else if(newStatus == "Delivered")
+		{
+			msg = "Your order has been delivered. We hope you love it.";
+		}
+		else
+		{
+			msg = "Your order has been packed and will be handed to the courier shortly.";
+		}
+		thisapp.bf.notify("Customer",ord.Email,"Order " + newStatus.toLowerCase(),"Order " + ord.Order_Number + " " + newStatus.toLowerCase(),msg,ord.Order_Number,if(newStatus == "Packed","In-app","Email"));
+		if(newStatus != "Packed")
+		{
+			sendmail
+			[
+				from :zoho.adminuserid
+				to :ord.Email
+				subject :"Order " + ord.Order_Number + ": " + newStatus
+				message :msg
+			]
+		}
+	}
+	return "OK";
+}
+
+
+/* ---------------------------------------------------------------------------
+   void bf.backfillOpeningStock()
+   Run ONCE after importing Product_Variants from CSV so every variant has an
+   "Opening Stock" ledger row and the ledger sums to the stock on hand.
+   ------------------------------------------------------------------------- */
+void bf.backfillOpeningStock()
+{
+	for each  v in Product_Variants[Stock_Qty > 0]
+	{
+		has = Inventory_Movements[Product_Variant == v.ID];
+		if(has.count() == 0)
+		{
+			insert into Inventory_Movements
+			[
+				Added_User = zoho.loginuser
+				Product_Variant = v.ID
+				Movement_Type = "Opening Stock"
+				Quantity_Change = v.Stock_Qty
+				Balance_After = v.Stock_Qty
+				Reason = "Imported opening balance"
+				Performed_By = "System"
+			];
+		}
+	}
+}

@@ -1,0 +1,201 @@
+﻿Product,Colour,Size,SKU,Stock_Qty,Active,Low_Stock_Alerted
+Mahika Kanchipuram Silk Saree,Burgundy,Free Size,SAR01-BUR-FS,10,true,false
+Mahika Kanchipuram Silk Saree,Emerald,Free Size,SAR01-EME-FS,10,true,false
+Mahika Kanchipuram Silk Saree,Champagne,Free Size,SAR01-CHA-FS,10,true,false
+Banarasi Georgette Saree,Ivory,Free Size,SAR02-IVO-FS,10,true,false
+Banarasi Georgette Saree,Dusty Rose,Free Size,SAR02-DUS-FS,10,true,false
+Chanderi Cotton-Silk Saree,Sage,Free Size,SAR03-SAG-FS,10,true,false
+Chanderi Cotton-Silk Saree,Powder Blue,Free Size,SAR03-POW-FS,10,true,false
+Chanderi Cotton-Silk Saree,Blush,Free Size,SAR03-BLU-FS,10,true,false
+Tussar Handloom Saree,Terracotta,Free Size,SAR04-TER-FS,10,true,false
+Tussar Handloom Saree,Olive,Free Size,SAR04-OLI-FS,10,true,false
+Anaya Chikankari Kurti,Ivory,XS,KUR01-IVO-XS,10,true,false
+Anaya Chikankari Kurti,Ivory,S,KUR01-IVO-S,10,true,false
+Anaya Chikankari Kurti,Ivory,M,KUR01-IVO-M,10,true,false
+Anaya Chikankari Kurti,Ivory,L,KUR01-IVO-L,10,true,false
+Anaya Chikankari Kurti,Ivory,XL,KUR01-IVO-XL,10,true,false
+Anaya Chikankari Kurti,Ivory,XXL,KUR01-IVO-XXL,10,true,false
+Anaya Chikankari Kurti,Blush,XS,KUR01-BLU-XS,10,true,false
+Anaya Chikankari Kurti,Blush,S,KUR01-BLU-S,10,true,false
+Anaya Chikankari Kurti,Blush,M,KUR01-BLU-M,10,true,false
+Anaya Chikankari Kurti,Blush,L,KUR01-BLU-L,10,true,false
+Anaya Chikankari Kurti,Blush,XL,KUR01-BLU-XL,10,true,false
+Anaya Chikankari Kurti,Blush,XXL,KUR01-BLU-XXL,10,true,false
+Anaya Chikankari Kurti,Powder Blue,XS,KUR01-POW-XS,10,true,false
+Anaya Chikankari Kurti,Powder Blue,S,KUR01-POW-S,10,true,false
+Anaya Chikankari Kurti,Powder Blue,M,KUR01-POW-M,10,true,false
+Anaya Chikankari Kurti,Powder Blue,L,KUR01-POW-L,10,true,false
+Anaya Chikankari Kurti,Powder Blue,XL,KUR01-POW-XL,10,true,false
+Anaya Chikankari Kurti,Powder Blue,XXL,KUR01-POW-XXL,10,true,false
+Block-Print Cotton Kurti,Terracotta,XS,KUR02-TER-XS,10,true,false
+Block-Print Cotton Kurti,Terracotta,S,KUR02-TER-S,10,true,false
+Block-Print Cotton Kurti,Terracotta,M,KUR02-TER-M,10,true,false
+Block-Print Cotton Kurti,Terracotta,L,KUR02-TER-L,10,true,false
+Block-Print Cotton Kurti,Terracotta,XL,KUR02-TER-XL,10,true,false
+Block-Print Cotton Kurti,Terracotta,XXL,KUR02-TER-XXL,10,true,false
+Block-Print Cotton Kurti,Midnight,XS,KUR02-MID-XS,10,true,false
+Block-Print Cotton Kurti,Midnight,S,KUR02-MID-S,10,true,false
+Block-Print Cotton Kurti,Midnight,M,KUR02-MID-M,10,true,false
+Block-Print Cotton Kurti,Midnight,L,KUR02-MID-L,10,true,false
+Block-Print Cotton Kurti,Midnight,XL,KUR02-MID-XL,10,true,false
+Block-Print Cotton Kurti,Midnight,XXL,KUR02-MID-XXL,10,true,false
+Silk-Blend Straight Kurti,Burgundy,XS,KUR03-BUR-XS,10,true,false
+Silk-Blend Straight Kurti,Burgundy,S,KUR03-BUR-S,10,true,false
+Silk-Blend Straight Kurti,Burgundy,M,KUR03-BUR-M,10,true,false
+Silk-Blend Straight Kurti,Burgundy,L,KUR03-BUR-L,10,true,false
+Silk-Blend Straight Kurti,Burgundy,XL,KUR03-BUR-XL,10,true,false
+Silk-Blend Straight Kurti,Burgundy,XXL,KUR03-BUR-XXL,10,true,false
+Silk-Blend Straight Kurti,Emerald,XS,KUR03-EME-XS,10,true,false
+Silk-Blend Straight Kurti,Emerald,S,KUR03-EME-S,10,true,false
+Silk-Blend Straight Kurti,Emerald,M,KUR03-EME-M,10,true,false
+Silk-Blend Straight Kurti,Emerald,L,KUR03-EME-L,10,true,false
+Silk-Blend Straight Kurti,Emerald,XL,KUR03-EME-XL,10,true,false
+Silk-Blend Straight Kurti,Emerald,XXL,KUR03-EME-XXL,10,true,false
+Linen Mandarin-Collar Kurti,Sage,XS,KUR04-SAG-XS,10,true,false
+Linen Mandarin-Collar Kurti,Sage,S,KUR04-SAG-S,10,true,false
+Linen Mandarin-Collar Kurti,Sage,M,KUR04-SAG-M,10,true,false
+Linen Mandarin-Collar Kurti,Sage,L,KUR04-SAG-L,10,true,false
+Linen Mandarin-Collar Kurti,Sage,XL,KUR04-SAG-XL,10,true,false
+Linen Mandarin-Collar Kurti,Sage,XXL,KUR04-SAG-XXL,10,true,false
+Linen Mandarin-Collar Kurti,Ivory,XS,KUR04-IVO-XS,10,true,false
+Linen Mandarin-Collar Kurti,Ivory,S,KUR04-IVO-S,10,true,false
+Linen Mandarin-Collar Kurti,Ivory,M,KUR04-IVO-M,10,true,false
+Linen Mandarin-Collar Kurti,Ivory,L,KUR04-IVO-L,10,true,false
+Linen Mandarin-Collar Kurti,Ivory,XL,KUR04-IVO-XL,10,true,false
+Linen Mandarin-Collar Kurti,Ivory,XXL,KUR04-IVO-XXL,10,true,false
+Linen Mandarin-Collar Kurti,Charcoal,XS,KUR04-CHA-XS,10,true,false
+Linen Mandarin-Collar Kurti,Charcoal,S,KUR04-CHA-S,10,true,false
+Linen Mandarin-Collar Kurti,Charcoal,M,KUR04-CHA-M,10,true,false
+Linen Mandarin-Collar Kurti,Charcoal,L,KUR04-CHA-L,10,true,false
+Linen Mandarin-Collar Kurti,Charcoal,XL,KUR04-CHA-XL,10,true,false
+Linen Mandarin-Collar Kurti,Charcoal,XXL,KUR04-CHA-XXL,10,true,false
+Soirée Satin Midi Dress,Burgundy,XS,DRS01-BUR-XS,10,true,false
+Soirée Satin Midi Dress,Burgundy,S,DRS01-BUR-S,10,true,false
+Soirée Satin Midi Dress,Burgundy,M,DRS01-BUR-M,10,true,false
+Soirée Satin Midi Dress,Burgundy,L,DRS01-BUR-L,10,true,false
+Soirée Satin Midi Dress,Burgundy,XL,DRS01-BUR-XL,10,true,false
+Soirée Satin Midi Dress,Midnight,XS,DRS01-MID-XS,10,true,false
+Soirée Satin Midi Dress,Midnight,S,DRS01-MID-S,10,true,false
+Soirée Satin Midi Dress,Midnight,M,DRS01-MID-M,10,true,false
+Soirée Satin Midi Dress,Midnight,L,DRS01-MID-L,10,true,false
+Soirée Satin Midi Dress,Midnight,XL,DRS01-MID-XL,10,true,false
+Soirée Satin Midi Dress,Champagne,XS,DRS01-CHA-XS,10,true,false
+Soirée Satin Midi Dress,Champagne,S,DRS01-CHA-S,10,true,false
+Soirée Satin Midi Dress,Champagne,M,DRS01-CHA-M,10,true,false
+Soirée Satin Midi Dress,Champagne,L,DRS01-CHA-L,10,true,false
+Soirée Satin Midi Dress,Champagne,XL,DRS01-CHA-XL,10,true,false
+Wrap Dress in Crepe,Olive,XS,DRS02-OLI-XS,10,true,false
+Wrap Dress in Crepe,Olive,S,DRS02-OLI-S,10,true,false
+Wrap Dress in Crepe,Olive,M,DRS02-OLI-M,10,true,false
+Wrap Dress in Crepe,Olive,L,DRS02-OLI-L,10,true,false
+Wrap Dress in Crepe,Olive,XL,DRS02-OLI-XL,10,true,false
+Wrap Dress in Crepe,Plum,XS,DRS02-PLU-XS,10,true,false
+Wrap Dress in Crepe,Plum,S,DRS02-PLU-S,10,true,false
+Wrap Dress in Crepe,Plum,M,DRS02-PLU-M,10,true,false
+Wrap Dress in Crepe,Plum,L,DRS02-PLU-L,10,true,false
+Wrap Dress in Crepe,Plum,XL,DRS02-PLU-XL,10,true,false
+Floral Voile Maxi Dress,Blush,XS,DRS03-BLU-XS,10,true,false
+Floral Voile Maxi Dress,Blush,S,DRS03-BLU-S,10,true,false
+Floral Voile Maxi Dress,Blush,M,DRS03-BLU-M,10,true,false
+Floral Voile Maxi Dress,Blush,L,DRS03-BLU-L,10,true,false
+Floral Voile Maxi Dress,Blush,XL,DRS03-BLU-XL,10,true,false
+Floral Voile Maxi Dress,Sage,XS,DRS03-SAG-XS,10,true,false
+Floral Voile Maxi Dress,Sage,S,DRS03-SAG-S,10,true,false
+Floral Voile Maxi Dress,Sage,M,DRS03-SAG-M,10,true,false
+Floral Voile Maxi Dress,Sage,L,DRS03-SAG-L,10,true,false
+Floral Voile Maxi Dress,Sage,XL,DRS03-SAG-XL,10,true,false
+Pleated Shirt Dress,Ivory,XS,DRS04-IVO-XS,10,true,false
+Pleated Shirt Dress,Ivory,S,DRS04-IVO-S,10,true,false
+Pleated Shirt Dress,Ivory,M,DRS04-IVO-M,10,true,false
+Pleated Shirt Dress,Ivory,L,DRS04-IVO-L,10,true,false
+Pleated Shirt Dress,Ivory,XL,DRS04-IVO-XL,10,true,false
+Pleated Shirt Dress,Charcoal,XS,DRS04-CHA-XS,10,true,false
+Pleated Shirt Dress,Charcoal,S,DRS04-CHA-S,10,true,false
+Pleated Shirt Dress,Charcoal,M,DRS04-CHA-M,10,true,false
+Pleated Shirt Dress,Charcoal,L,DRS04-CHA-L,10,true,false
+Pleated Shirt Dress,Charcoal,XL,DRS04-CHA-XL,10,true,false
+Silk Charmeuse Camisole,Champagne,XS,TOP01-CHA-XS,10,true,false
+Silk Charmeuse Camisole,Champagne,S,TOP01-CHA-S,10,true,false
+Silk Charmeuse Camisole,Champagne,M,TOP01-CHA-M,10,true,false
+Silk Charmeuse Camisole,Champagne,L,TOP01-CHA-L,10,true,false
+Silk Charmeuse Camisole,Champagne,XL,TOP01-CHA-XL,10,true,false
+Silk Charmeuse Camisole,Burgundy,XS,TOP01-BUR-XS,10,true,false
+Silk Charmeuse Camisole,Burgundy,S,TOP01-BUR-S,10,true,false
+Silk Charmeuse Camisole,Burgundy,M,TOP01-BUR-M,10,true,false
+Silk Charmeuse Camisole,Burgundy,L,TOP01-BUR-L,10,true,false
+Silk Charmeuse Camisole,Burgundy,XL,TOP01-BUR-XL,10,true,false
+Silk Charmeuse Camisole,Ivory,XS,TOP01-IVO-XS,10,true,false
+Silk Charmeuse Camisole,Ivory,S,TOP01-IVO-S,10,true,false
+Silk Charmeuse Camisole,Ivory,M,TOP01-IVO-M,10,true,false
+Silk Charmeuse Camisole,Ivory,L,TOP01-IVO-L,10,true,false
+Silk Charmeuse Camisole,Ivory,XL,TOP01-IVO-XL,10,true,false
+Ruffle Collar Blouse,Ivory,XS,TOP02-IVO-XS,10,true,false
+Ruffle Collar Blouse,Ivory,S,TOP02-IVO-S,10,true,false
+Ruffle Collar Blouse,Ivory,M,TOP02-IVO-M,10,true,false
+Ruffle Collar Blouse,Ivory,L,TOP02-IVO-L,10,true,false
+Ruffle Collar Blouse,Ivory,XL,TOP02-IVO-XL,10,true,false
+Ruffle Collar Blouse,Blush,XS,TOP02-BLU-XS,10,true,false
+Ruffle Collar Blouse,Blush,S,TOP02-BLU-S,10,true,false
+Ruffle Collar Blouse,Blush,M,TOP02-BLU-M,10,true,false
+Ruffle Collar Blouse,Blush,L,TOP02-BLU-L,10,true,false
+Ruffle Collar Blouse,Blush,XL,TOP02-BLU-XL,10,true,false
+Linen Boxy Shirt,Sage,XS,TOP03-SAG-XS,10,true,false
+Linen Boxy Shirt,Sage,S,TOP03-SAG-S,10,true,false
+Linen Boxy Shirt,Sage,M,TOP03-SAG-M,10,true,false
+Linen Boxy Shirt,Sage,L,TOP03-SAG-L,10,true,false
+Linen Boxy Shirt,Sage,XL,TOP03-SAG-XL,10,true,false
+Linen Boxy Shirt,Powder Blue,XS,TOP03-POW-XS,10,true,false
+Linen Boxy Shirt,Powder Blue,S,TOP03-POW-S,10,true,false
+Linen Boxy Shirt,Powder Blue,M,TOP03-POW-M,10,true,false
+Linen Boxy Shirt,Powder Blue,L,TOP03-POW-L,10,true,false
+Linen Boxy Shirt,Powder Blue,XL,TOP03-POW-XL,10,true,false
+Embroidered Peplum Top,Midnight,XS,TOP04-MID-XS,10,true,false
+Embroidered Peplum Top,Midnight,S,TOP04-MID-S,10,true,false
+Embroidered Peplum Top,Midnight,M,TOP04-MID-M,10,true,false
+Embroidered Peplum Top,Midnight,L,TOP04-MID-L,10,true,false
+Embroidered Peplum Top,Midnight,XL,TOP04-MID-XL,10,true,false
+Embroidered Peplum Top,Terracotta,XS,TOP04-TER-XS,10,true,false
+Embroidered Peplum Top,Terracotta,S,TOP04-TER-S,10,true,false
+Embroidered Peplum Top,Terracotta,M,TOP04-TER-M,10,true,false
+Embroidered Peplum Top,Terracotta,L,TOP04-TER-L,10,true,false
+Embroidered Peplum Top,Terracotta,XL,TOP04-TER-XL,10,true,false
+Hand-Painted Silk Scarf,Burgundy,One Size,ACC01-BUR-OS,10,true,false
+Hand-Painted Silk Scarf,Champagne,One Size,ACC01-CHA-OS,10,true,false
+Hand-Painted Silk Scarf,Powder Blue,One Size,ACC01-POW-OS,10,true,false
+Structured Leather Tote,Espresso,One Size,ACC02-ESP-OS,10,true,false
+Structured Leather Tote,Burgundy,One Size,ACC02-BUR-OS,10,true,false
+Structured Leather Tote,Ivory,One Size,ACC02-IVO-OS,10,true,false
+Gold-Plated Jhumka Earrings,Antique Gold,One Size,ACC03-ANT-OS,10,true,false
+Gold-Plated Jhumka Earrings,Rose Gold,One Size,ACC03-ROS-OS,10,true,false
+Embroidered Potli Clutch,Burgundy,One Size,ACC04-BUR-OS,10,true,false
+Embroidered Potli Clutch,Champagne,One Size,ACC04-CHA-OS,10,true,false
+Zardozi Bridal Lehenga,Crimson,XS,LEH01-CRI-XS,10,true,false
+Zardozi Bridal Lehenga,Crimson,S,LEH01-CRI-S,10,true,false
+Zardozi Bridal Lehenga,Crimson,M,LEH01-CRI-M,10,true,false
+Zardozi Bridal Lehenga,Crimson,L,LEH01-CRI-L,10,true,false
+Zardozi Bridal Lehenga,Crimson,XL,LEH01-CRI-XL,10,true,false
+Rose Embroidered Lehenga Set,Rose Pink,XS,LEH02-ROS-XS,10,true,false
+Rose Embroidered Lehenga Set,Rose Pink,S,LEH02-ROS-S,10,true,false
+Rose Embroidered Lehenga Set,Rose Pink,M,LEH02-ROS-M,10,true,false
+Rose Embroidered Lehenga Set,Rose Pink,L,LEH02-ROS-L,10,true,false
+Rose Embroidered Lehenga Set,Rose Pink,XL,LEH02-ROS-XL,10,true,false
+Rose Embroidered Lehenga Set,Burgundy,XS,LEH02-BUR-XS,10,true,false
+Rose Embroidered Lehenga Set,Burgundy,S,LEH02-BUR-S,10,true,false
+Rose Embroidered Lehenga Set,Burgundy,M,LEH02-BUR-M,10,true,false
+Rose Embroidered Lehenga Set,Burgundy,L,LEH02-BUR-L,10,true,false
+Rose Embroidered Lehenga Set,Burgundy,XL,LEH02-BUR-XL,10,true,false
+Marigold Mehendi Lehenga,Marigold,XS,LEH03-MAR-XS,10,true,false
+Marigold Mehendi Lehenga,Marigold,S,LEH03-MAR-S,10,true,false
+Marigold Mehendi Lehenga,Marigold,M,LEH03-MAR-M,10,true,false
+Marigold Mehendi Lehenga,Marigold,L,LEH03-MAR-L,10,true,false
+Marigold Mehendi Lehenga,Marigold,XL,LEH03-MAR-XL,10,true,false
+Block-Print Anarkali Set,Ivory,XS,ESE01-IVO-XS,10,true,false
+Block-Print Anarkali Set,Ivory,S,ESE01-IVO-S,10,true,false
+Block-Print Anarkali Set,Ivory,M,ESE01-IVO-M,10,true,false
+Block-Print Anarkali Set,Ivory,L,ESE01-IVO-L,10,true,false
+Block-Print Anarkali Set,Ivory,XL,ESE01-IVO-XL,10,true,false
+"Embroidered Kurta, Palazzo & Dupatta Set",Indigo,XS,ESE02-IND-XS,10,true,false
+"Embroidered Kurta, Palazzo & Dupatta Set",Indigo,S,ESE02-IND-S,10,true,false
+"Embroidered Kurta, Palazzo & Dupatta Set",Indigo,M,ESE02-IND-M,10,true,false
+"Embroidered Kurta, Palazzo & Dupatta Set",Indigo,L,ESE02-IND-L,10,true,false
+"Embroidered Kurta, Palazzo & Dupatta Set",Indigo,XL,ESE02-IND-XL,10,true,false
